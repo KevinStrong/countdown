@@ -17,18 +17,30 @@ func Test_daycountdown_CallGet_ReturnZero(t *testing.T) {
 
 	got := countdown.Get()
 
-	expect.Equal(want, got)
+	expect.Equal(got, int64(want))
 }
 
-func Test_daycountdown_SetDuration_CallGet_ReturnDuration(t *testing.T) {
+func Test_daycountdown_SetDays_CallGet_ReturnDurationInDays(t *testing.T) {
 	expect := is.New(t)
 
 	want := 10
-	countdown := daycountdown.New(daycountdown.Duration(want))
+	countdown := daycountdown.New(daycountdown.Days(want))
 
 	got := countdown.Get()
 
-	expect.Equal(want, got)
+	expect.Equal(got, int64(want))
+}
+
+func Test_daycountdown_SetSpecificDuration_CallGet_ReturnDuration(t *testing.T) {
+	expect := is.New(t)
+
+	want := 10
+	wantDuration := time.Duration(want) * time.Hour * 24
+	countdown := daycountdown.New(daycountdown.Duration(wantDuration))
+
+	got := countdown.Get()
+
+	expect.Equal(got, int64(want))
 }
 
 func Test_daycountdown_SetEnd_ReturnsDaysUntilEnd(t *testing.T) {
@@ -40,7 +52,7 @@ func Test_daycountdown_SetEnd_ReturnsDaysUntilEnd(t *testing.T) {
 
 	got := countdown.Get()
 
-	expect.Equal(got, want)
+	expect.Equal(got, int64(want))
 }
 
 func Test_daycountdown_SetStart_AndDuration_ReturnsDaysUntilDurationEnds(t *testing.T) {
@@ -49,24 +61,37 @@ func Test_daycountdown_SetStart_AndDuration_ReturnsDaysUntilDurationEnds(t *test
 	want := 5
 	duration := 10
 	start := getFiveDaysAgo()
-	countdown := daycountdown.New(daycountdown.Start(start), daycountdown.Duration(duration))
+	countdown := daycountdown.New(daycountdown.Start(start), daycountdown.Days(duration))
 
 	got := countdown.Get()
 
-	expect.Equal(got, want)
+	expect.Equal(got, int64(want))
 }
 
-func Test_daycountdown_SetEnd_AndSetDuration_IgnoreDuration(t *testing.T) {
+// Ignore duration if end is set
+func Test_daycountdown_SetEnd_AndSetDuration_ReturnsDaysUntilEnd(t *testing.T) {
 	expect := is.New(t)
 
 	want := 5
 	end := getFiveDaysFromNow()
 	ignored := 10
 
-	countdown := daycountdown.New(daycountdown.End(end), daycountdown.Duration(ignored))
+	countdown := daycountdown.New(daycountdown.End(end), daycountdown.Days(ignored))
 	got := countdown.Get()
 
-	expect.Equal(got, want)
+	expect.Equal(got, int64(want))
+}
+
+func Test_daycountdown_SetDuration_AndHours_ReturnDurationInHours(t *testing.T) {
+	expect := is.New(t)
+
+	wantDays := 10
+	want := 10 * 24
+	countdown := daycountdown.New(daycountdown.Days(wantDays), daycountdown.Unit(time.Hour))
+
+	got := countdown.Get()
+
+	expect.Equal(int64(want), got)
 }
 
 func getFiveDaysAgo() time.Time {

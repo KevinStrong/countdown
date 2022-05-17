@@ -9,11 +9,18 @@ type Countdown struct {
 	duration time.Duration
 	start    time.Time
 	end      time.Time
+	units    time.Duration
 }
 
 type Setup func(*Countdown)
 
-func Duration(days int) Setup {
+func Duration(duration time.Duration) Setup {
+	return func(c *Countdown) {
+		c.duration = duration
+	}
+}
+
+func Days(days int) Setup {
 	return func(c *Countdown) {
 		c.duration = time.Duration(days) * time.Hour * 24
 	}
@@ -21,22 +28,32 @@ func Duration(days int) Setup {
 
 func Start(start time.Time) Setup {
 	return func(c *Countdown) {
-		c.start = roundToDay(start).UTC()
+		c.start = start.UTC()
 	}
 }
 
 func End(end time.Time) Setup {
 	return func(c *Countdown) {
-		c.end = roundToDay(end).UTC()
+		c.end = end.UTC()
 	}
 }
 
-func roundToDay(original time.Time) time.Time {
-	return time.Date(original.Year(), original.Month(), original.Day(), 0, 0, 0, 0, original.Location())
+func Unit(unit time.Duration) Setup {
+	return func(c *Countdown) {
+		if unit != time.Hour &&
+			unit != time.Minute &&
+			unit != time.Second &&
+			unit != time.Millisecond {
+			return
+		}
+		c.units = unit
+	}
 }
 
 func New(setups ...Setup) Countdown {
-	countdown := Countdown{start: time.Now().UTC()}
+	countdown := Countdown{
+		start: time.Now().UTC(),
+	}
 
 	for i := range setups {
 		setups[i](&countdown)
@@ -49,11 +66,27 @@ func New(setups ...Setup) Countdown {
 	return countdown
 }
 
-func (c Countdown) Get() int {
-	hoursUntilStartOfFinalDay := c.end.Sub(time.Now().UTC()).Hours()
-	daysRemaining := int(math.Ceil(hoursUntilStartOfFinalDay / 24))
-	if daysRemaining < 0 {
+func (c Countdown) Get() int64 {
+	durationRemaining := c.end.Sub(time.Now().UTC())
+	var unitsRemaining int64
+	// day is default behavior
+	if c.units == 0 {
+		unitsRemaining = int64(math.Ceil(durationRemaining.Hours() / 24))
+	}
+	if c.units == time.Hour {
+		unitsRemaining = int64(math.Ceil(durationRemaining.Hours()))
+	}
+	if c.units == time.Minute {
+		unitsRemaining = int64(math.Ceil(durationRemaining.Minutes()))
+	}
+	if c.units == time.Second {
+		unitsRemaining = int64(math.Ceil(durationRemaining.Seconds()))
+	}
+	if c.units == time.Millisecond {
+		unitsRemaining = durationRemaining.Milliseconds()
+	}
+	if unitsRemaining < 0 {
 		return 0
 	}
-	return daysRemaining
+	return unitsRemaining
 }
