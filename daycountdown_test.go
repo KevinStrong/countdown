@@ -56,6 +56,19 @@ func Test_daycountdown_SetStart_AndDuration_ReturnsDaysUntilDurationEnds(t *test
 	expect.Equal(got, want)
 }
 
+func Test_daycountdown_SetEnd_AndSetDuration_IgnoreDuration(t *testing.T) {
+	expect := is.New(t)
+
+	want := 5
+	end := getFiveDaysFromNow()
+	ignored := 10
+
+	countdown := daycountdown.New(daycountdown.End(end), daycountdown.Duration(ignored))
+	got := countdown.Get()
+
+	expect.Equal(got, want)
+}
+
 func getFiveDaysAgo() time.Time {
 	return time.Now().AddDate(0, 0, -5)
 }

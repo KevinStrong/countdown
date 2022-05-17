@@ -1,6 +1,7 @@
 package daycountdown
 
 import (
+	"math"
 	"time"
 )
 
@@ -12,9 +13,9 @@ type Countdown struct {
 
 type Setup func(*Countdown)
 
-func Duration(duration int) Setup {
+func Duration(days int) Setup {
 	return func(c *Countdown) {
-		c.duration = time.Duration(duration) * time.Hour * 24
+		c.duration = time.Duration(days) * time.Hour * 24
 	}
 }
 
@@ -49,5 +50,10 @@ func New(setups ...Setup) Countdown {
 }
 
 func (c Countdown) Get() int {
-	return int(c.end.Sub(time.Now().UTC()).Hours()) / 24
+	hoursUntilStartOfFinalDay := c.end.Sub(time.Now().UTC()).Hours()
+	daysRemaining := int(math.Ceil(hoursUntilStartOfFinalDay / 24))
+	if daysRemaining < 0 {
+		return 0
+	}
+	return daysRemaining
 }
