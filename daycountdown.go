@@ -1,16 +1,22 @@
 package daycountdown
 
 import (
+	"io/ioutil"
 	"math"
 	"time"
 )
 
 type Countdown struct {
-	duration time.Duration
-	start    time.Time
-	end      time.Time
-	units    time.Duration
+	duration   time.Duration
+	start      time.Time
+	end        time.Time
+	units      time.Duration
+	configName string
+	Error      error
 }
+
+const defaultConfigFileName = "duration_countdown.config"
+const timeStampFormat = time.RFC3339Nano
 
 type Option func(*Countdown)
 
@@ -50,9 +56,26 @@ func Unit(unit time.Duration) Option {
 	}
 }
 
+func FromFile() Option {
+	return func(c *Countdown) {
+		content, err := ioutil.ReadFile(c.configName)
+		if err != nil {
+			c.Error = err
+			return
+		}
+		end, err := time.Parse(timeStampFormat, string(content))
+		if err != nil {
+			c.Error = err
+			return
+		}
+		c.end = end
+	}
+}
+
 func New(setups ...Option) Countdown {
 	countdown := Countdown{
-		start: time.Now().UTC(),
+		start:      time.Now().UTC(),
+		configName: defaultConfigFileName,
 	}
 
 	for i := range setups {
@@ -67,6 +90,9 @@ func New(setups ...Option) Countdown {
 }
 
 func (c Countdown) Get() int64 {
+	if c.Error != nil {
+		return 0
+	}
 	durationRemaining := c.end.Sub(time.Now().UTC())
 	var unitsRemaining int64
 	// day is default behavior
@@ -89,4 +115,9 @@ func (c Countdown) Get() int64 {
 		return 0
 	}
 	return unitsRemaining
+}
+
+func (c Countdown) Save() error {
+	endTime := c.end.Format(timeStampFormat)
+	return ioutil.WriteFile(c.configName, []byte(endTime), 0644)
 }

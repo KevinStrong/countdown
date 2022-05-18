@@ -94,6 +94,33 @@ func Test_daycountdown_SetDuration_AndHours_ReturnDurationInHours(t *testing.T) 
 	expect.Equal(int64(want), got)
 }
 
+func Test_daycountdown_SetEndFromConfig_ReturnsDaysUntilEnd(t *testing.T) {
+	expect := is.New(t)
+
+	want := 5
+
+	countdown := daycountdown.New(daycountdown.FromFile())
+	got := countdown.Get()
+
+	expect.Equal(got, int64(want))
+}
+
+func Test_daycountdown_WriteEndToConfig_AndReadInConfig(t *testing.T) {
+	expect := is.New(t)
+
+	want := 5
+	end := getFiveDaysFromNow()
+	countdown := daycountdown.New(daycountdown.End(end))
+
+	err := countdown.Save()
+	expect.NoErr(err)
+
+	countdown = daycountdown.New(daycountdown.FromFile())
+	got := countdown.Get()
+
+	expect.Equal(got, int64(want))
+}
+
 func getFiveDaysAgo() time.Time {
 	return time.Now().AddDate(0, 0, -5)
 }
