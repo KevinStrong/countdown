@@ -1,7 +1,5 @@
-module github.com/KevinStrong/daycountdown
+module github.com/KevinStrong/countdown
 
 go 1.18
 
-require (
-	github.com/matryer/is v1.4.0
-)
+require github.com/matryer/is v1.4.0

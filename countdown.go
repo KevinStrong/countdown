@@ -1,4 +1,4 @@
-package daycountdown
+package countdown
 
 import (
 	"io/ioutil"
