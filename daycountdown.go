@@ -12,33 +12,33 @@ type Countdown struct {
 	units    time.Duration
 }
 
-type Setup func(*Countdown)
+type Option func(*Countdown)
 
-func Duration(duration time.Duration) Setup {
+func Duration(duration time.Duration) Option {
 	return func(c *Countdown) {
 		c.duration = duration
 	}
 }
 
-func Days(days int) Setup {
+func Days(days int) Option {
 	return func(c *Countdown) {
 		c.duration = time.Duration(days) * time.Hour * 24
 	}
 }
 
-func Start(start time.Time) Setup {
+func Start(start time.Time) Option {
 	return func(c *Countdown) {
 		c.start = start.UTC()
 	}
 }
 
-func End(end time.Time) Setup {
+func End(end time.Time) Option {
 	return func(c *Countdown) {
 		c.end = end.UTC()
 	}
 }
 
-func Unit(unit time.Duration) Setup {
+func Unit(unit time.Duration) Option {
 	return func(c *Countdown) {
 		if unit != time.Hour &&
 			unit != time.Minute &&
@@ -50,7 +50,7 @@ func Unit(unit time.Duration) Setup {
 	}
 }
 
-func New(setups ...Setup) Countdown {
+func New(setups ...Option) Countdown {
 	countdown := Countdown{
 		start: time.Now().UTC(),
 	}
